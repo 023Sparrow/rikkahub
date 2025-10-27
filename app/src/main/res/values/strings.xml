@@ -740,4 +740,26 @@
   <string name="search_ability_search">Search</string>
   <string name="search_ability_scrape">Scrape</string>
   <string name="setting_provider_page_search_providers">Search providers</string>
+
+  <!-- Memory Table -->
+  <string name="memory_table_editor_title">Edit Memory Table</string>
+  <string name="memory_table_add_row">Add Row</string>
+  <string name="memory_table_add_column">Add Column</string>
+  <string name="memory_table_new_title">Create Memory Table</string>
+  <string name="memory_table_name_hint">Enter memory table name</string>
+  <string name="memory_table_column_name_hint">Enter column name</string>
+  
+  <!-- World Book -->
+  <string name="title">Title</string>
+  <string name="keywords">Keywords</string>
+  <string name="keywords_helper_text">Comma-separated keywords</string>
+  <string name="content">Content</string>
+  <string name="comment">Comment</string>
+  <string name="constant_entry">Constant Entry</string>
+  <string name="use_regex">Use Regex</string>
+  <string name="priority">Priority</string>
+  <string name="search">Search</string>
+  <string name="add_new_entry">Add New Entry</string>
+  <string name="add_new_table">Add New Table</string>
+  <string name="save">Save</string>
 </resources>

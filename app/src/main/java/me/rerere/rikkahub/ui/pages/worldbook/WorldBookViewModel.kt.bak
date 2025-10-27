@@ -1,0 +1,42 @@
+package me.rerere.rikkahub.ui.pages.worldbook
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import me.rerere.rikkahub.data.db.entity.WorldBookEntry
+import me.rerere.rikkahub.data.repository.WorldBookRepository
+import kotlin.uuid.Uuid
+
+class WorldBookViewModel(
+    private val repository: WorldBookRepository
+) : ViewModel() {
+
+    val entries = repository.getAllEntries()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    fun getEntry(id: Uuid) = repository.getEntry(id)
+
+    fun saveEntry(entry: WorldBookEntry) {
+        viewModelScope.launch {
+            repository.insertEntry(entry)
+        }
+    }
+
+    fun deleteEntry(entry: WorldBookEntry) {
+        viewModelScope.launch {
+            repository.deleteEntry(entry)
+        }
+    }
+
+    fun toggleEnabled(entry: WorldBookEntry) {
+        viewModelScope.launch {
+            repository.updateEntry(entry.copy(enabled = !entry.enabled))
+        }
+    }
+}

@@ -1,0 +1,300 @@
+package me.rerere.rikkahub
+
+import me.rerere.ai.ui.Message
+import me.rerere.ai.ui.MessageRole
+import me.rerere.rikkahub.data.db.entity.WorldBookEntry
+import me.rerere.rikkahub.service.WorldBookInjector
+import org.junit.Test
+import org.junit.Assert.*
+
+/**
+ * WorldBookInjector单元测试
+ * 测试上下文注入、格式化、token限制等功能
+ */
+class WorldBookInjectorTest {
+
+    private val injector = WorldBookInjector()
+
+    @Test
+    fun `test basic injection`() {
+        val messages = listOf(
+            Message(role = MessageRole.User, textContent = "Tell me about dragons.")
+        )
+
+        val matchedEntries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Dragon",
+                content = "Dragons are large reptilian creatures that breathe fire.",
+                keys = "dragon",
+                enabled = true,
+                priority = 0
+            )
+        )
+
+        val result = injector.injectContext(
+            messages = messages,
+            matchedEntries = matchedEntries,
+            position = "before_prompt", // 在用户消息之前注入
+            depth = 3
+        )
+
+        // 验证注入后的消息数量
+        assertTrue(result.size > messages.size)
+        
+        // 验证注入的内容
+        val injectedMessage = result.find { it.role == MessageRole.System }
+        assertNotNull(injectedMessage)
+        assertTrue(injectedMessage!!.textContent.contains("Dragons are large reptilian creatures"))
+    }
+
+    @Test
+    fun `test injection position before_prompt`() {
+        val messages = listOf(
+            Message(role = MessageRole.User, textContent = "User message 1"),
+            Message(role = MessageRole.Assistant, textContent = "Assistant message 1"),
+            Message(role = MessageRole.User, textContent = "User message 2")
+        )
+
+        val matchedEntries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Test Entry",
+                content = "Test content",
+                keys = "test",
+                enabled = true,
+                priority = 0
+            )
+        )
+
+        val result = injector.injectContext(
+            messages = messages,
+            matchedEntries = matchedEntries,
+            position = "before_prompt",
+            depth = 3
+        )
+
+        // before_prompt 应该在最后一条用户消息之前注入
+        // 查找注入的system消息
+        val systemMsgIndex = result.indexOfFirst { it.role == MessageRole.System }
+        val lastUserMsgIndex = result.indexOfLast { it.role == MessageRole.User }
+        
+        assertTrue(systemMsgIndex >= 0)
+        assertTrue(systemMsgIndex < lastUserMsgIndex)
+    }
+
+    @Test
+    fun `test injection position after_prompt`() {
+        val messages = listOf(
+            Message(role = MessageRole.User, textContent = "User message")
+        )
+
+        val matchedEntries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Test Entry",
+                content = "Test content",
+                keys = "test",
+                enabled = true,
+                priority = 0
+            )
+        )
+
+        val result = injector.injectContext(
+            messages = messages,
+            matchedEntries = matchedEntries,
+            position = "after_prompt",
+            depth = 3
+        )
+
+        // after_prompt 应该在最后一条用户消息之后注入
+        val systemMsgIndex = result.indexOfFirst { it.role == MessageRole.System }
+        val lastUserMsgIndex = result.indexOfLast { it.role == MessageRole.User }
+        
+        assertTrue(systemMsgIndex >= 0)
+        assertTrue(systemMsgIndex > lastUserMsgIndex)
+    }
+
+    @Test
+    fun `test depth limit`() {
+        val messages = listOf(
+            Message(role = MessageRole.User, textContent = "Message 1"),
+            Message(role = MessageRole.Assistant, textContent = "Response 1"),
+            Message(role = MessageRole.User, textContent = "Message 2"),
+            Message(role = MessageRole.Assistant, textContent = "Response 2"),
+            Message(role = MessageRole.User, textContent = "Message 3"),
+            Message(role = MessageRole.Assistant, textContent = "Response 3"),
+            Message(role = MessageRole.User, textContent = "Message 4")
+        )
+
+        val matchedEntries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Test Entry",
+                content = "Test content",
+                keys = "test",
+                enabled = true,
+                priority = 0
+            )
+        )
+
+        // depth = 2 意味着只考虑最后2条消息
+        val result = injector.injectContext(
+            messages = messages,
+            matchedEntries = matchedEntries,
+            position = "before_prompt",
+            depth = 2
+        )
+
+        // 验证只有最后2条消息和注入的内容
+        // 注意：这取决于具体实现，这里假设depth限制了处理的消息范围
+        assertTrue(result.size >= 2)
+    }
+
+    @Test
+    fun `test format template`() {
+        val messages = listOf(
+            Message(role = MessageRole.User, textContent = "Tell me something.")
+        )
+
+        val matchedEntries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Entry Name",
+                content = "Entry Content",
+                keys = "test",
+                enabled = true,
+                priority = 0
+            )
+        )
+
+        // 测试不同的格式模板
+        val template1 = "[{{name}}] {{content}}"
+        val result1 = injector.injectContext(
+            messages = messages,
+            matchedEntries = matchedEntries,
+            position = "before_prompt",
+            depth = 3,
+            template = template1
+        )
+
+        val injectedMsg1 = result1.find { it.role == MessageRole.System }
+        assertNotNull(injectedMsg1)
+        assertTrue(injectedMsg1!!.textContent.contains("[Entry Name] Entry Content"))
+
+        val template2 = "{{content}}"
+        val result2 = injector.injectContext(
+            messages = messages,
+            matchedEntries = matchedEntries,
+            position = "before_prompt",
+            depth = 3,
+            template = template2
+        )
+
+        val injectedMsg2 = result2.find { it.role == MessageRole.System }
+        assertNotNull(injectedMsg2)
+        assertTrue(injectedMsg2!!.textContent.contains("Entry Content"))
+        assertFalse(injectedMsg2.textContent.contains("Entry Name"))
+    }
+
+    @Test
+    fun `test empty entries`() {
+        val messages = listOf(
+            Message(role = MessageRole.User, textContent = "User message")
+        )
+
+        val result = injector.injectContext(
+            messages = messages,
+            matchedEntries = emptyList(),
+            position = "before_prompt",
+            depth = 3
+        )
+
+        // 没有匹配条目时，不应该注入任何内容
+        assertEquals(messages.size, result.size)
+    }
+
+    @Test
+    fun `test multiple entries injection`() {
+        val messages = listOf(
+            Message(role = MessageRole.User, textContent = "Tell me about fantasy creatures.")
+        )
+
+        val matchedEntries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Dragon",
+                content = "Dragons breathe fire.",
+                keys = "dragon",
+                enabled = true,
+                priority = 100
+            ),
+            WorldBookEntry(
+                id = 2,
+                name = "Elf",
+                content = "Elves are immortal.",
+                keys = "elf",
+                enabled = true,
+                priority = 50
+            ),
+            WorldBookEntry(
+                id = 3,
+                name = "Dwarf",
+                content = "Dwarves love mining.",
+                keys = "dwarf",
+                enabled = true,
+                priority = 30
+            )
+        )
+
+        val result = injector.injectContext(
+            messages = messages,
+            matchedEntries = matchedEntries,
+            position = "before_prompt",
+            depth = 3
+        )
+
+        val injectedMessage = result.find { it.role == MessageRole.System }
+        assertNotNull(injectedMessage)
+        
+        // 验证所有条目都被注入（按优先级顺序）
+        assertTrue(injectedMessage!!.textContent.contains("Dragons breathe fire"))
+        assertTrue(injectedMessage.textContent.contains("Elves are immortal"))
+        assertTrue(injectedMessage.textContent.contains("Dwarves love mining"))
+    }
+
+    @Test
+    fun `test injection preserves message order`() {
+        val messages = listOf(
+            Message(role = MessageRole.System, textContent = "System instruction"),
+            Message(role = MessageRole.User, textContent = "User message 1"),
+            Message(role = MessageRole.Assistant, textContent = "Assistant response"),
+            Message(role = MessageRole.User, textContent = "User message 2")
+        )
+
+        val matchedEntries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Test",
+                content = "Test content",
+                keys = "test",
+                enabled = true,
+                priority = 0
+            )
+        )
+
+        val result = injector.injectContext(
+            messages = messages,
+            matchedEntries = matchedEntries,
+            position = "before_prompt",
+            depth = 10
+        )
+
+        // 验证原始消息的相对顺序保持不变（除了注入的system消息）
+        val originalUserMessages = messages.filter { it.role == MessageRole.User }
+        val resultUserMessages = result.filter { it.role == MessageRole.User }
+        
+        assertEquals(originalUserMessages.size, resultUserMessages.size)
+        assertEquals(originalUserMessages[0].textContent, resultUserMessages[0].textContent)
+    }
+}

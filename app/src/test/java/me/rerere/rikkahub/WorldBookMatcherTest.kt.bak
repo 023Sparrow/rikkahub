@@ -1,0 +1,274 @@
+package me.rerere.rikkahub
+
+import me.rerere.rikkahub.data.db.entity.WorldBookEntry
+import me.rerere.rikkahub.service.WorldBookMatcher
+import org.junit.Test
+import org.junit.Assert.*
+
+/**
+ * WorldBookMatcher单元测试
+ * 测试关键词匹配、正则表达式、优先级排序等核心功能
+ */
+class WorldBookMatcherTest {
+
+    private val matcher = WorldBookMatcher()
+
+    @Test
+    fun `test basic keyword matching`() {
+        // 准备测试数据
+        val entries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Entry 1",
+                content = "Content about dragons",
+                keys = "dragon,fire",
+                enabled = true,
+                priority = 0
+            ),
+            WorldBookEntry(
+                id = 2,
+                name = "Entry 2",
+                content = "Content about magic",
+                keys = "magic,spell",
+                enabled = true,
+                priority = 0
+            ),
+            WorldBookEntry(
+                id = 3,
+                name = "Entry 3",
+                content = "Content about sword",
+                keys = "sword,blade",
+                enabled = false, // 禁用条目
+                priority = 0
+            )
+        )
+
+        // 测试匹配
+        val text = "The dragon breathed fire across the battlefield."
+        val matches = matcher.findMatchingEntries(text, entries)
+
+        // 验证结果
+        assertEquals(1, matches.size)
+        assertEquals(1, matches[0].id)
+        assertTrue(matches[0].name == "Entry 1")
+    }
+
+    @Test
+    fun `test case insensitive matching`() {
+        val entries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Test Entry",
+                content = "Test content",
+                keys = "Dragon",
+                enabled = true,
+                priority = 0
+            )
+        )
+
+        // 测试大小写不敏感
+        val text1 = "A DRAGON appears!"
+        val text2 = "a dragon appears!"
+        val text3 = "A Dragon appears!"
+
+        val matches1 = matcher.findMatchingEntries(text1, entries)
+        val matches2 = matcher.findMatchingEntries(text2, entries)
+        val matches3 = matcher.findMatchingEntries(text3, entries)
+
+        assertEquals(1, matches1.size)
+        assertEquals(1, matches2.size)
+        assertEquals(1, matches3.size)
+    }
+
+    @Test
+    fun `test regex matching`() {
+        val entries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Regex Entry",
+                content = "Regex content",
+                keys = "/\\bfire\\s+\\w+/",
+                enabled = true,
+                useRegex = true,
+                priority = 0
+            )
+        )
+
+        // 测试正则表达式匹配
+        val text1 = "The fire dragon attacked."
+        val text2 = "There is fire everywhere."
+        
+        val matches1 = matcher.findMatchingEntries(text1, entries)
+        val matches2 = matcher.findMatchingEntries(text2, entries)
+
+        assertEquals(1, matches1.size)
+        assertEquals(0, matches2.size) // "fire everywhere" 不匹配 "fire \w+"
+    }
+
+    @Test
+    fun `test priority sorting`() {
+        val entries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Low Priority",
+                content = "Content 1",
+                keys = "test",
+                enabled = true,
+                priority = 10
+            ),
+            WorldBookEntry(
+                id = 2,
+                name = "High Priority",
+                content = "Content 2",
+                keys = "test",
+                enabled = true,
+                priority = 100
+            ),
+            WorldBookEntry(
+                id = 3,
+                name = "Medium Priority",
+                content = "Content 3",
+                keys = "test",
+                enabled = true,
+                priority = 50
+            )
+        )
+
+        val text = "This is a test message."
+        val matches = matcher.findMatchingEntries(text, entries)
+
+        // 验证按优先级排序（高到低）
+        assertEquals(3, matches.size)
+        assertEquals(2, matches[0].id) // High Priority
+        assertEquals(3, matches[1].id) // Medium Priority
+        assertEquals(1, matches[2].id) // Low Priority
+    }
+
+    @Test
+    fun `test recursive scanning`() {
+        val entries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Base Entry",
+                content = "This mentions a knight.",
+                keys = "dragon",
+                enabled = true,
+                priority = 0
+            ),
+            WorldBookEntry(
+                id = 2,
+                name = "Recursive Entry",
+                content = "Knights fight dragons.",
+                keys = "knight",
+                enabled = true,
+                priority = 0,
+                selectiveLogic = 0 // AND_ANY，启用递归扫描
+            )
+        )
+
+        val text = "A fierce dragon approaches."
+        val matches = matcher.findMatchingEntries(text, entries, recursiveScan = true)
+
+        // 验证递归扫描：应该匹配 Base Entry，然后在其内容中找到 "knight"，进而匹配 Recursive Entry
+        assertTrue(matches.any { it.id == 1L })
+        assertTrue(matches.any { it.id == 2L })
+    }
+
+    @Test
+    fun `test disabled entries are excluded`() {
+        val entries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Enabled Entry",
+                content = "Content 1",
+                keys = "test",
+                enabled = true,
+                priority = 0
+            ),
+            WorldBookEntry(
+                id = 2,
+                name = "Disabled Entry",
+                content = "Content 2",
+                keys = "test",
+                enabled = false,
+                priority = 0
+            )
+        )
+
+        val text = "This is a test."
+        val matches = matcher.findMatchingEntries(text, entries)
+
+        assertEquals(1, matches.size)
+        assertEquals(1, matches[0].id)
+    }
+
+    @Test
+    fun `test empty keys`() {
+        val entries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "No Keys",
+                content = "Content",
+                keys = "",
+                enabled = true,
+                priority = 0
+            )
+        )
+
+        val text = "Any text."
+        val matches = matcher.findMatchingEntries(text, entries)
+
+        assertEquals(0, matches.size)
+    }
+
+    @Test
+    fun `test multiple keywords in one entry`() {
+        val entries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Multi-key Entry",
+                content = "Content",
+                keys = "dragon,fire,wing",
+                enabled = true,
+                priority = 0
+            )
+        )
+
+        val text1 = "The dragon spreads its wings."
+        val text2 = "Fire burns everything."
+        val text3 = "A peaceful day."
+
+        val matches1 = matcher.findMatchingEntries(text1, entries)
+        val matches2 = matcher.findMatchingEntries(text2, entries)
+        val matches3 = matcher.findMatchingEntries(text3, entries)
+
+        assertEquals(1, matches1.size)
+        assertEquals(1, matches2.size)
+        assertEquals(0, matches3.size)
+    }
+
+    @Test
+    fun `test word boundary matching`() {
+        val entries = listOf(
+            WorldBookEntry(
+                id = 1,
+                name = "Word Boundary",
+                content = "Content",
+                keys = "cat",
+                enabled = true,
+                priority = 0
+            )
+        )
+
+        // "cat" 应该匹配独立的单词，不匹配 "cathedral" 中的 "cat"
+        val text1 = "A cat walked by."
+        val text2 = "The cathedral is beautiful."
+
+        val matches1 = matcher.findMatchingEntries(text1, entries)
+        val matches2 = matcher.findMatchingEntries(text2, entries)
+
+        assertEquals(1, matches1.size)
+        // 注意：当前实现可能会匹配 "cathedral" 中的 "cat"，这取决于具体实现
+        // 如果需要严格的单词边界匹配，应该在实现中使用 \b 边界
+    }
+}

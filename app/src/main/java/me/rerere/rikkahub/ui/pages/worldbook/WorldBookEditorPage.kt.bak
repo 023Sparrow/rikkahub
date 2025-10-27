@@ -1,0 +1,272 @@
+package me.rerere.rikkahub.ui.pages.worldbook
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.*
+import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.db.entity.WorldBookEntry
+import me.rerere.rikkahub.ui.components.nav.BackButton
+import me.rerere.rikkahub.ui.components.ui.FormItem
+import me.rerere.rikkahub.ui.context.LocalNavController
+import org.koin.androidx.compose.koinViewModel
+import kotlin.uuid.Uuid
+
+@Composable
+fun WorldBookEditorPage(
+    entryId: String?,
+    vm: WorldBookViewModel = koinViewModel()
+) {
+    val navController = LocalNavController.current
+    val existingEntry = entryId?.let { id ->
+        val uuid = Uuid.parse(id)
+        vm.getEntry(uuid).collectAsStateWithLifecycle(initialValue = null).value
+    }
+
+    var entry by remember(existingEntry) {
+        mutableStateOf(
+            existingEntry ?: WorldBookEntry(
+                id = Uuid.random(),
+                name = "",
+                content = "",
+                keywords = emptyList(),
+                enabled = true,
+                priority = 100,
+                useRegex = false,
+                caseSensitive = false,
+                matchWholeWords = false,
+                scanDepth = 0,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
+            )
+        )
+    }
+
+    var keywordInput by remember { mutableStateOf("") }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(if (entryId == null) "New Entry" else "Edit Entry") },
+                navigationIcon = { BackButton() },
+                actions = {
+                    TextButton(
+                        onClick = {
+                            vm.saveEntry(entry.copy(updatedAt = System.currentTimeMillis()))
+                            navController.popBackStack()
+                        },
+                        enabled = entry.name.isNotBlank() && entry.content.isNotBlank()
+                    ) {
+                        Text("Save")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Basic Information Section
+            Text(
+                text = "Basic Information",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            FormItem(label = { Text("Entry Name *") }) {
+                OutlinedTextField(
+                    value = entry.name,
+                    onValueChange = { entry = entry.copy(name = it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("e.g., Character Background") }
+                )
+            }
+
+            FormItem(label = { Text("Content *") }) {
+                OutlinedTextField(
+                    value = entry.content,
+                    onValueChange = { entry = entry.copy(content = it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 120.dp),
+                    placeholder = { Text("Enter the world book content...") },
+                    minLines = 5
+                )
+            }
+
+            // Keywords Section
+            Text(
+                text = "Keywords",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            FormItem(label = { Text("Add Keywords") }) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = keywordInput,
+                        onValueChange = { keywordInput = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Enter keyword") },
+                        singleLine = true
+                    )
+                    IconButton(
+                        onClick = {
+                            if (keywordInput.isNotBlank() && keywordInput !in entry.keywords) {
+                                entry = entry.copy(keywords = entry.keywords + keywordInput.trim())
+                                keywordInput = ""
+                            }
+                        }
+                    ) {
+                        Icon(Lucide.Plus, "Add keyword")
+                    }
+                }
+            }
+
+            // Display existing keywords
+            if (entry.keywords.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    entry.keywords.forEach { keyword ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(keyword)
+                                IconButton(
+                                    onClick = {
+                                        entry = entry.copy(keywords = entry.keywords - keyword)
+                                    },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        Lucide.X,
+                                        "Remove",
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Matching Options Section
+            Text(
+                text = "Matching Options",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Enable Entry")
+                Switch(
+                    checked = entry.enabled,
+                    onCheckedChange = { entry = entry.copy(enabled = it) }
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Use Regular Expression")
+                Switch(
+                    checked = entry.useRegex,
+                    onCheckedChange = { entry = entry.copy(useRegex = it) }
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Case Sensitive")
+                Switch(
+                    checked = entry.caseSensitive,
+                    onCheckedChange = { entry = entry.copy(caseSensitive = it) }
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Match Whole Words")
+                Switch(
+                    checked = entry.matchWholeWords,
+                    onCheckedChange = { entry = entry.copy(matchWholeWords = it) }
+                )
+            }
+
+            // Advanced Settings Section
+            Text(
+                text = "Advanced Settings",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            FormItem(
+                label = { Text("Priority (0-999)") },
+                description = { Text("Higher priority entries are matched first", style = MaterialTheme.typography.bodySmall) }
+            ) {
+                OutlinedTextField(
+                    value = entry.priority.toString(),
+                    onValueChange = { 
+                        it.toIntOrNull()?.let { value ->
+                            if (value in 0..999) {
+                                entry = entry.copy(priority = value)
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+
+            FormItem(
+                label = { Text("Recursive Scan Depth (0-5)") },
+                description = { 
+                    Text("Depth for scanning triggered entries (0 = disabled)", style = MaterialTheme.typography.bodySmall) 
+                }
+            ) {
+                OutlinedTextField(
+                    value = entry.scanDepth.toString(),
+                    onValueChange = { 
+                        it.toIntOrNull()?.let { value ->
+                            if (value in 0..5) {
+                                entry = entry.copy(scanDepth = value)
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+        }
+    }
+}

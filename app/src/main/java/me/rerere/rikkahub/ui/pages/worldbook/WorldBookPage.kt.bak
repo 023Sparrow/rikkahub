@@ -1,0 +1,257 @@
+package me.rerere.rikkahub.ui.pages.worldbook
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.composables.icons.lucide.*
+import me.rerere.rikkahub.R
+import me.rerere.rikkahub.Screen
+import me.rerere.rikkahub.data.db.entity.WorldBookEntry
+import me.rerere.rikkahub.ui.components.nav.BackButton
+import me.rerere.rikkahub.ui.components.ui.Tag
+import me.rerere.rikkahub.ui.components.ui.TagType
+import me.rerere.rikkahub.ui.context.LocalNavController
+import org.koin.androidx.compose.koinViewModel
+
+@Composable
+fun WorldBookPage(
+    vm: WorldBookViewModel = koinViewModel()
+) {
+    val navController = LocalNavController.current
+    val entries by vm.entries.collectAsStateWithLifecycle()
+    var searchQuery by remember { mutableStateOf("") }
+    var showDeleteDialog by remember { mutableStateOf<WorldBookEntry?>(null) }
+
+    val filteredEntries = remember(entries, searchQuery) {
+        if (searchQuery.isBlank()) {
+            entries
+        } else {
+            entries.filter { entry ->
+                entry.name.contains(searchQuery, ignoreCase = true) ||
+                entry.content.contains(searchQuery, ignoreCase = true) ||
+                entry.keywords.any { it.contains(searchQuery, ignoreCase = true) }
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("World Book") },
+                navigationIcon = { BackButton() },
+                actions = {
+                    IconButton(onClick = {
+                        navController.navigate(Screen.WorldBookEditor())
+                    }) {
+                        Icon(Lucide.Plus, "Add Entry")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // Search bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                placeholder = { Text("Search entries...") },
+                leadingIcon = {
+                    Icon(Lucide.Search, contentDescription = null)
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Lucide.X, contentDescription = "Clear")
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = CircleShape
+            )
+
+            // Entries list
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(filteredEntries, key = { it.id }) { entry ->
+                    WorldBookEntryCard(
+                        entry = entry,
+                        onClick = {
+                            navController.navigate(
+                                Screen.WorldBookEditor(entryId = entry.id.toString())
+                            )
+                        },
+                        onDelete = {
+                            showDeleteDialog = entry
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    // Delete confirmation dialog
+    showDeleteDialog?.let { entry ->
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = null },
+            title = { Text("Delete Entry") },
+            text = { Text("Are you sure you want to delete \"${entry.name}\"?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        vm.deleteEntry(entry)
+                        showDeleteDialog = null
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun WorldBookEntryCard(
+    entry: WorldBookEntry,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Header row with name and actions
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = entry.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Tag(type = if (entry.enabled) TagType.SUCCESS else TagType.WARNING) {
+                        Text(if (entry.enabled) "Enabled" else "Disabled")
+                    }
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Lucide.Trash2,
+                            "Delete",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+
+            // Content preview
+            Text(
+                text = entry.content,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            // Keywords
+            if (entry.keywords.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Lucide.Key,
+                        "Keywords",
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = entry.keywords.take(3).joinToString(", "),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (entry.keywords.size > 3) {
+                        Text(
+                            text = "+${entry.keywords.size - 3}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            // Metadata
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (entry.useRegex) {
+                    Tag(type = TagType.INFO) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Lucide.Code,
+                                null,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text("Regex", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+                Tag(type = TagType.INFO) {
+                    Text("Priority: ${entry.priority}", style = MaterialTheme.typography.labelSmall)
+                }
+                if (entry.scanDepth > 0) {
+                    Tag(type = TagType.INFO) {
+                        Text("Depth: ${entry.scanDepth}", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+        }
+    }
+}

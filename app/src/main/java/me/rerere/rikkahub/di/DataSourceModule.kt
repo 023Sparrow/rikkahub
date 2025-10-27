@@ -64,6 +64,14 @@ val dataSourceModule = module {
         get<AppDatabase>().genMediaDao()
     }
 
+    single {
+        get<AppDatabase>().worldBookDao()
+    }
+
+    single {
+        get<AppDatabase>().memoryTableDao()
+    }
+
     single { McpManager(settingsStore = get(), appScope = get()) }
 
     single {

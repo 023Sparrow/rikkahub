@@ -34,7 +34,27 @@ data class Assistant(
     val localTools: List<LocalToolOption> = emptyList(),
     val background: String? = null,
     val learningMode: Boolean = false,
+    
+    // 世界书配置
+    val enableWorldBook: Boolean = false,                      // 是否启用世界书
+    val worldBookContextSize: Int = 2000,                      // 世界书上下文token限制
+    val worldBookMaxHistoryMessages: Int = 5,                  // 匹配时检查的历史消息数量
+    val worldBookMaxRecursionDepth: Int = 3,                   // 最大递归深度 (用户可配置)
+    val worldBookFormatStyle: WorldBookFormatStyle = WorldBookFormatStyle.STRUCTURED, // 格式化风格
+    
+    // 记忆表格配置
+    val enableMemoryTable: Boolean = false,                    // 是否启用记忆表格作为Tool
 )
+
+/**
+ * 世界书格式化风格
+ */
+@Serializable
+enum class WorldBookFormatStyle {
+    STRUCTURED,  // 结构化格式
+    MINIMAL,     // 简洁格式
+    MARKDOWN     // Markdown格式
+}
 
 @Serializable
 data class QuickMessage(

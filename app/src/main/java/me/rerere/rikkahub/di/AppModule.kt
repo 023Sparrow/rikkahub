@@ -10,6 +10,11 @@ import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.ai.AILoggingManager
 import me.rerere.rikkahub.data.ai.tools.LocalTools
 import me.rerere.rikkahub.service.ChatService
+import me.rerere.rikkahub.service.WorldBookMatcher
+import me.rerere.rikkahub.service.WorldBookInjector
+// Temporarily commented out for data layer testing
+// import me.rerere.rikkahub.ui.pages.worldbook.WorldBookViewModel
+// import me.rerere.rikkahub.ui.pages.memorytable.MemoryTableViewModel
 import me.rerere.rikkahub.utils.EmojiData
 import me.rerere.rikkahub.utils.EmojiUtils
 import me.rerere.rikkahub.utils.JsonInstant
@@ -61,6 +66,14 @@ val appModule = module {
     }
 
     single {
+        WorldBookMatcher()
+    }
+
+    single {
+        WorldBookInjector()
+    }
+
+    single {
         ChatService(
             context = get(),
             appScope = get(),
@@ -71,7 +84,23 @@ val appModule = module {
             templateTransformer = get(),
             providerManager = get(),
             localTools = get(),
-            mcpManager = get()
+            mcpManager = get(),
+            worldBookRepository = get(),
+            worldBookMatcher = get(),
+            worldBookInjector = get()
         )
     }
+
+    // Temporarily commented out for data layer testing
+    // factory {
+    //     WorldBookViewModel(
+    //         repository = get()
+    //     )
+    // }
+
+    // factory {
+    //     MemoryTableViewModel(
+    //         repository = get()
+    //     )
+    // }
 }

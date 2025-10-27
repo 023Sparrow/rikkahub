@@ -12,20 +12,34 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.ui.UIMessage
+import me.rerere.rikkahub.data.db.converter.StringListConverter
+import me.rerere.rikkahub.data.db.converter.MemoryTableCellConverter
 import me.rerere.rikkahub.data.db.dao.ConversationDAO
 import me.rerere.rikkahub.data.db.dao.GenMediaDAO
 import me.rerere.rikkahub.data.db.dao.MemoryDAO
+import me.rerere.rikkahub.data.db.dao.WorldBookDAO
+import me.rerere.rikkahub.data.db.dao.MemoryTableDAO
 import me.rerere.rikkahub.data.db.entity.ConversationEntity
 import me.rerere.rikkahub.data.db.entity.GenMediaEntity
 import me.rerere.rikkahub.data.db.entity.MemoryEntity
+import me.rerere.rikkahub.data.db.entity.WorldBookEntry
+import me.rerere.rikkahub.data.db.entity.MemoryTable
+import me.rerere.rikkahub.data.db.entity.MemoryTableRow
 import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.utils.JsonInstant
 
 private const val TAG = "AppDatabase"
 
 @Database(
-    entities = [ConversationEntity::class, MemoryEntity::class, GenMediaEntity::class],
-    version = 11,
+    entities = [
+        ConversationEntity::class,
+        MemoryEntity::class,
+        GenMediaEntity::class,
+        WorldBookEntry::class,
+        MemoryTable::class,
+        MemoryTableRow::class
+    ],
+    version = 12,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -36,15 +50,24 @@ private const val TAG = "AppDatabase"
         AutoMigration(from = 8, to = 9, spec = Migration_8_9::class),
         AutoMigration(from = 9, to = 10),
         AutoMigration(from = 10, to = 11),
+        AutoMigration(from = 11, to = 12)
     ]
 )
-@TypeConverters(TokenUsageConverter::class)
+@TypeConverters(
+    TokenUsageConverter::class,
+    StringListConverter::class,
+    MemoryTableCellConverter::class
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun conversationDao(): ConversationDAO
 
     abstract fun memoryDao(): MemoryDAO
 
     abstract fun genMediaDao(): GenMediaDAO
+    
+    abstract fun worldBookDao(): WorldBookDAO
+    
+    abstract fun memoryTableDao(): MemoryTableDAO
 }
 
 object TokenUsageConverter {

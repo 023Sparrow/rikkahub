@@ -108,6 +108,9 @@ class ChatService(
     private val providerManager: ProviderManager,
     private val localTools: LocalTools,
     val mcpManager: McpManager,
+    private val worldBookRepository: me.rerere.rikkahub.data.repository.WorldBookRepository,
+    private val worldBookMatcher: WorldBookMatcher,
+    private val worldBookInjector: WorldBookInjector,
 ) {
     // 存储每个对话的状态
     private val conversations = ConcurrentHashMap<Uuid, MutableStateFlow<Conversation>>()
@@ -348,6 +351,7 @@ class ChatService(
     ) {
         val settings = settingsStore.settingsFlow.first()
         val model = settings.getCurrentChatModel() ?: return
+        val assistant = settings.getCurrentAssistant()
 
         runCatching {
             val conversation = getConversationFlow(conversationId).value
@@ -365,18 +369,71 @@ class ChatService(
             // check invalid messages
             checkInvalidMessages(conversationId)
 
+            // 获取要传递给AI的消息列表
+            var messagesToGenerate = conversation.currentMessages.let {
+                if (messageRange != null) {
+                    it.subList(messageRange.start, messageRange.endInclusive + 1)
+                } else {
+                    it
+                }
+            }
+
+            // ============ 世界书匹配和注入 ============
+            if (assistant.enableWorldBook) {
+                try {
+                    // 获取当前助手的所有启用的世界书条目
+                    val worldBookEntries = worldBookRepository.getActiveWorldBookEntries(
+                        assistant.id.toString()
+                    )
+
+                    if (worldBookEntries.isNotEmpty()) {
+                        // 匹配世界书条目
+                        val matchedEntries = worldBookMatcher.matchEntries(
+                            input = messagesToGenerate.lastOrNull()?.toText() ?: "",
+                            conversationHistory = messagesToGenerate.takeLast(assistant.worldBookMaxHistoryMessages),
+                            entries = worldBookEntries,
+                            maxHistoryMessages = assistant.worldBookMaxHistoryMessages,
+                            maxRecursionDepth = assistant.worldBookMaxRecursionDepth
+                        )
+
+                        // 注入世界书内容
+                        if (matchedEntries.isNotEmpty()) {
+                            messagesToGenerate = worldBookInjector.injectWorldBook(
+                                messages = messagesToGenerate,
+                                matchedEntries = matchedEntries,
+                                assistant = assistant,
+                                config = WorldBookInjector.InjectionConfig(
+                                    maxTokens = assistant.worldBookContextSize,
+                                    enableDeduplication = true,
+                                    formatStyle = when (assistant.worldBookFormatStyle) {
+                                        me.rerere.rikkahub.data.model.WorldBookFormatStyle.STRUCTURED ->
+                                            WorldBookInjector.FormatStyle.STRUCTURED
+                                        me.rerere.rikkahub.data.model.WorldBookFormatStyle.MINIMAL ->
+                                            WorldBookInjector.FormatStyle.MINIMAL
+                                        me.rerere.rikkahub.data.model.WorldBookFormatStyle.MARKDOWN ->
+                                            WorldBookInjector.FormatStyle.MARKDOWN
+                                    }
+                                )
+                            )
+
+                            // 日志输出匹配结果（用于调试）
+                            Log.d(TAG, "World Book matched ${matchedEntries.size} entries")
+                            Log.v(TAG, worldBookMatcher.formatMatchedEntries(matchedEntries))
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "World Book integration error", e)
+                    // 世界书错误不应阻止对话继续，只记录错误
+                }
+            }
+            // ============ 世界书集成结束 ============
+
             // start generating
             generationHandler.generateText(
                 settings = settings,
                 model = model,
-                messages = conversation.currentMessages.let {
-                    if (messageRange != null) {
-                        it.subList(messageRange.start, messageRange.endInclusive + 1)
-                    } else {
-                        it
-                    }
-                },
-                assistant = settings.getCurrentAssistant(),
+                messages = messagesToGenerate, // 使用注入世界书后的消息列表
+                assistant = assistant,
                 memories = { memoryRepository.getMemoriesOfAssistant(settings.assistantId.toString()) },
                 inputTransformers = buildList {
                     addAll(inputTransformers)
