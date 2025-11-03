@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.pages.chat
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -28,6 +31,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -40,10 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.composables.icons.lucide.Book
 import com.composables.icons.lucide.ListTree
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Sparkles
+import com.composables.icons.lucide.Table
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -249,7 +255,8 @@ private fun ChatPageContent(
                     },
                     onUpdateTitle = {
                         vm.updateTitle(it)
-                    }
+                    },
+                    navController = navController
                 )
             },
             bottomBar = {
@@ -371,13 +378,16 @@ private fun TopBar(
     bigScreen: Boolean,
     onClickMenu: () -> Unit,
     onNewChat: () -> Unit,
-    onUpdateTitle: (String) -> Unit
+    onUpdateTitle: (String) -> Unit,
+    navController: NavHostController
 ) {
     val scope = rememberCoroutineScope()
     val toaster = LocalToaster.current
     val titleState = useEditState<String> {
         onUpdateTitle(it)
     }
+    var knowledgeBaseMenuExpanded by remember { mutableStateOf(false) }
+    val assistant = settings.getCurrentAssistant()
 
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
@@ -429,6 +439,40 @@ private fun TopBar(
             }
         },
         actions = {
+            // Knowledge Base Button
+            Box {
+                IconButton(
+                    onClick = {
+                        knowledgeBaseMenuExpanded = true
+                    }
+                ) {
+                    Icon(Lucide.Book, "Knowledge Base")
+                }
+                DropdownMenu(
+                    expanded = knowledgeBaseMenuExpanded,
+                    onDismissRequest = {
+                        knowledgeBaseMenuExpanded = false
+                    }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("World Book") },
+                        leadingIcon = { Icon(Lucide.Book, null) },
+                        onClick = {
+                            navController.navigate(Screen.WorldBook(assistant.id))
+                            knowledgeBaseMenuExpanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Memory Tables") },
+                        leadingIcon = { Icon(Lucide.Table, null) },
+                        onClick = {
+                            navController.navigate(Screen.MemoryTable(assistant.id))
+                            knowledgeBaseMenuExpanded = false
+                        }
+                    )
+                }
+            }
+
             IconButton(
                 onClick = {
                     onClickMenu()

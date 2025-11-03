@@ -12,6 +12,7 @@ import me.rerere.rikkahub.data.ai.tools.LocalTools
 import me.rerere.rikkahub.service.ChatService
 import me.rerere.rikkahub.service.WorldBookMatcher
 import me.rerere.rikkahub.service.WorldBookInjector
+import me.rerere.rikkahub.service.MemoryTableQueryService
 // Temporarily commented out for data layer testing
 // import me.rerere.rikkahub.ui.pages.worldbook.WorldBookViewModel
 // import me.rerere.rikkahub.ui.pages.memorytable.MemoryTableViewModel
@@ -71,6 +72,9 @@ val appModule = module {
 
     single {
         WorldBookInjector()
+    }
+n    single {
+        MemoryTableQueryService(get())
     }
 
     single {

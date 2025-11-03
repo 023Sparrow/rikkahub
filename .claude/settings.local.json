@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(./gradlew:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx -y @pimzino/spec-workflow-mcp@latest D:/Code/rikkahub --dashboard)",
+      "mcp__spec-workflow__spec-workflow-guide",
+      "mcp__spec-workflow__approvals",
+      "mcp__spec-workflow__spec-status",
+      "Bash(cat D:/Code/rikkahub/app/src/main/java/me/rerere/rikkahub/di/AppModule.kt)",
+      "Bash(cat D:/Code/rikkahub/app/src/main/java/me/rerere/rikkahub/ui/viewmodel/WorldBookViewModel.kt)",
+      "Bash(java -version)",
+      "Bash(git checkout -b cc-完成)",
+      "Bash(git add .)"
     ],
     "deny": []
   }

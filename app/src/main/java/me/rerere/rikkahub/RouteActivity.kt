@@ -75,10 +75,10 @@ import me.rerere.rikkahub.ui.pages.share.handler.ShareHandlerPage
 import me.rerere.rikkahub.ui.pages.translator.TranslatorPage
 import me.rerere.rikkahub.ui.pages.webview.WebViewPage
 // Temporarily commented out for data layer testing
-// import me.rerere.rikkahub.ui.pages.worldbook.WorldBookPage
-// import me.rerere.rikkahub.ui.pages.worldbook.WorldBookEditorPage
-// import me.rerere.rikkahub.ui.pages.memorytable.MemoryTablePage
-// import me.rerere.rikkahub.ui.pages.memorytable.MemoryTableEditorPage
+import me.rerere.rikkahub.ui.pages.worldbook.WorldBookManagementPage
+import me.rerere.rikkahub.ui.pages.worldbook.WorldBookEditorPage
+import me.rerere.rikkahub.ui.pages.memorytable.MemoryTableManagementPage
+import me.rerere.rikkahub.ui.pages.memorytable.MemoryTableEditorPage
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import okhttp3.OkHttpClient
@@ -299,24 +299,35 @@ class RouteActivity : ComponentActivity() {
                         DebugPage()
                     }
 
-                    // Temporarily commented out for data layer testing
-                    // composable<Screen.WorldBook> {
-                    //     WorldBookPage()
-                    // }
+                    // World Book routes
+                    composable<Screen.WorldBook> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Screen.WorldBook>()
+                        WorldBookManagementPage(
+                            assistantId = route.assistantId
+                        )
+                    }
 
-                    // composable<Screen.WorldBookEditor> { backStackEntry ->
-                    //     val route = backStackEntry.toRoute<Screen.WorldBookEditor>()
-                    //     WorldBookEditorPage(entryId = route.entryId)
-                    // }
+                    composable<Screen.WorldBookEditor> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Screen.WorldBookEditor>()
+                        WorldBookEditorPage(
+                            entryId = route.entryId
+                        )
+                    }
 
-                    // composable<Screen.MemoryTable> {
-                    //     MemoryTablePage()
-                    // }
+                    // Memory Table routes
+                    composable<Screen.MemoryTable> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Screen.MemoryTable>()
+                        MemoryTableManagementPage(
+                            assistantId = route.assistantId
+                        )
+                    }
 
-                    // composable<Screen.MemoryTableEditor> { backStackEntry ->
-                    //     val route = backStackEntry.toRoute<Screen.MemoryTableEditor>()
-                    //     MemoryTableEditorPage(entryId = route.entryId)
-                    // }
+                    composable<Screen.MemoryTableEditor> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Screen.MemoryTableEditor>()
+                        MemoryTableEditorPage(
+                            tableId = route.entryId
+                        )
+                    }
                 }
             }
         }
@@ -391,13 +402,13 @@ sealed interface Screen {
     data object Debug : Screen
 
     @Serializable
-    data object WorldBook : Screen
+    data class WorldBook(val assistantId: String) : Screen
 
     @Serializable
     data class WorldBookEditor(val entryId: String? = null) : Screen
 
     @Serializable
-    data object MemoryTable : Screen
+    data class MemoryTable(val assistantId: String) : Screen
 
     @Serializable
     data class MemoryTableEditor(val entryId: String? = null) : Screen

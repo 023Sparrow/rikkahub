@@ -1,0 +1,22 @@
+{
+  "filePath": ".spec-workflow/specs/world-book-and-memory-table-integration/tasks.md",
+  "currentVersion": 2,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2025-11-03T13:19:50.556Z",
+      "trigger": "initial",
+      "approvalId": "approval_1762175990543_n0mc9rgbg",
+      "approvalTitle": "Tasks Document Approval"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2025-11-03T13:20:03.073Z",
+      "trigger": "approved",
+      "approvalId": "approval_1762175990543_n0mc9rgbg",
+      "approvalTitle": "Tasks Document Approval"
+    }
+  ]
+}
