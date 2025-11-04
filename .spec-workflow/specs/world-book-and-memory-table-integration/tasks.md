@@ -55,7 +55,7 @@
   - _Requirements: 3.1, 3.2, 3.3
   - _Prompt: Role: Android Developer with expertise in MVVM and Jetpack Compose state management | Task: Implement or update WorldBookViewModel following requirements 3.1, 3.2, and 3.3, managing state for entries list, search, and CRUD operations | Restrictions: Must use StateFlow/MutableStateFlow, handle async operations properly, implement proper error handling | Success: ViewModel manages state correctly, all operations work with proper loading/error states, follows MVVM patterns
 
-- [-] 7. Implement MemoryTableViewModel
+- [x] 7. Implement MemoryTableViewModel
   - File: app/src/main/java/me/rerere/rikkahub/ui/viewmodel/MemoryTableViewModel.kt
   - Create new ViewModel for memory table management
   - Add state for tables list, selected table, rows, assistant ID
@@ -87,7 +87,7 @@
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8
   - _Prompt: Role: Android/Compose Developer with form design expertise | Task: Create WorldBookEditorPage composable following requirements 4.1 through 4.8, implementing comprehensive form with all fields, tag input, toggles, and validation | Restrictions: Must use Material 3, implement proper validation, handle keyboard input correctly, provide good UX | Success: All fields work correctly, validation prevents invalid data, form is intuitive and user-friendly
 
-^- [-] 10. Create MemoryTableManagementPage composable
+^- [x] 10. Create MemoryTableManagementPage composable
   - File: app/src/main/java/me/rerere/rikkahub/ui/pages/memorytable/MemoryTableManagementPage.kt
   - Implement list view for tables with search
   - Add FAB for creating new tables
@@ -97,7 +97,7 @@
   - _Requirements: 5.1, 5.2, 5.3, 5.5, 5.6
   - _Prompt: Role: Android/Compose Developer with list UI expertise | Task: Create MemoryTableManagementPage composable following requirements 5.1, 5.2, 5.3, 5.5, and 5.6, implementing table list with search, FAB, and actions | Restrictions: Must follow existing page patterns, Material 3 components, proper navigation | Success: Page displays tables correctly, search works, actions function properly, consistent with app design
 
-^- [-] 11. Create MemoryTableEditorPage composable
+^- [x] 11. Create MemoryTableEditorPage composable
   - File: app/src/main/java/me/rerere/rikkahub/ui/pages/memorytable/MemoryTableEditorPage.kt
   - Implement table editor with name/description fields
   - Add column header management (add/remove/rename)
@@ -109,7 +109,7 @@
   - _Requirements: 5.4, 7.3
   - _Prompt: Role: Android/Compose Developer with data grid/editing expertise | Task: Create MemoryTableEditorPage composable following requirements 5.4 and 7.3, implementing comprehensive table editor with column/row management and import/export | Restrictions: Must handle large tables efficiently, implement proper scrolling, use Reorderable for row reordering | Success: Table editing works smoothly, import/export functions correctly, handles large datasets well
 
-^- [-] 12. Add knowledge base button to ChatPage
+^- [x] 12. Add knowledge base button to ChatPage
   - File: app/src/main/java/me/rerere/rikkahub/ui/pages/chat/ChatPage.kt
   - Add knowledge base button to TopAppBar actions
   - Implement dropdown/modal with World Book and Memory Table options
@@ -129,7 +129,7 @@
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5
   - _Prompt: Role: Android/Compose Developer with settings UI expertise | Task: Add knowledge base settings to AssistantDetailPage following requirements 8.1 through 8.5, implementing toggles and configuration fields | Restrictions: Must follow existing tab/layout patterns, persist settings correctly, validate inputs | Success: Settings UI integrates seamlessly, all toggles work, settings are saved and applied correctly
 
-- [ ] 14. Enable navigation routes in RouteActivity
+- [x] 14. Enable navigation routes in RouteActivity
   - File: app/src/main/java/me/rerere/rikkahub/RouteActivity.kt
   - Uncomment/comment out world book and memory table composable routes
   - Add knowledge base routes to NavHost
@@ -138,7 +138,7 @@
   - _Requirements: 3.1, 5.1, 6.1
   - _Prompt: Role: Android Developer with navigation architecture expertise | Task: Enable navigation routes in RouteActivity following requirements 3.1, 5.1, and 6.1, adding composable routes to NavHost for world book and memory table screens | Restrictions: Must follow existing route patterns, maintain proper argument passing, test navigation flows | Success: All routes navigate correctly, arguments are passed properly, navigation back works as expected
 
-- [ ] 15. Clean up commented UI code
+- [x] 15. Clean up commented UI code
   - Files: app/src/main/java/me/rerere/rikkahub/ui/fragment/WorldBookFragment.kt, app/src/main/java/me/rerere/rikkahub/ui/fragment/MemoryTableFragment.kt, app/src/main/java/me/rerere/rikkahub/ui/adapter/MemoryTableEditorAdapter.kt, app/src/main/java/me/rerere/rikkahub/ui/viewmodel/MemoryTableEditorViewModel.kt
   - Remove commented/legacy code that uses Android View system
   - Remove any unused imports and dependencies
@@ -147,7 +147,7 @@
   - _Requirements: Code Quality
   - _Prompt: Role: Android Developer with code cleanup and refactoring expertise | Task: Clean up commented UI code in legacy Fragment/DataBinding files, removing unused code that might cause confusion | Restrictions: Must not remove any functionality, backup important code patterns in comments, verify no broken references | Success: Legacy code is removed or properly archived, no compilation warnings, codebase is clean and maintainable
 
-- [ ] 16. Update Assistant model to use MemoryTableQueryService
+- [x] 16. Update Assistant model to use MemoryTableQueryService
   - File: app/src/main/java/me/rerere/rikkahub/data/model/Assistant.kt
   - Verify all world book and memory table fields are present and correct
   - Add any missing configuration fields if needed
@@ -156,7 +156,7 @@
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5
   - _Prompt: Role: Android/Kotlin Developer with data model expertise | Task: Verify and update Assistant model following requirements 8.1 through 8.5, ensuring all world book and memory table configuration fields are present and properly typed | Restrictions: Must maintain backward compatibility, use correct serialization annotations, follow existing patterns | Success: Model includes all required fields, serialization works correctly, backward compatibility maintained
 
-- [ ] 17. Integrate MemoryTableQueryService with AI tools
+- [x] 17. Integrate MemoryTableQueryService with AI tools
   - File: app/src/main/java/me/rerere/rikkahub/data/ai/tools/LocalTools.kt
   - Add memory table query tool to local tools list
   - Implement tool definition and execution logic
@@ -213,6 +213,32 @@
   - _Leverage: existing code review standards, project conventions
   - _Requirements: Code Quality
   - _Prompt: Role: Senior Android Developer with code review and quality assurance expertise | Task: Perform comprehensive code review and cleanup, ensuring all code meets quality standards and follows conventions | Restrictions: Must maintain functionality, ensure performance, verify security considerations | Success: Code is clean and maintainable, all features work end-to-end, meets quality standards
+
+## 环境配置任务
+
+- [x] 23. 检测开发环境
+  - File: N/A (系统检测)
+  - 检查 Java、Android SDK、Gradle 环境
+  - 目的: 确认开发环境状态
+  - 状态: ✅ 已完成 - 缺少 Java/Android SDK，已创建配置指南
+
+- [x] 24. 创建环境配置脚本
+  - Files: setup-android-env.sh, setup-android-env-windows.bat
+  - 自动化安装脚本 (Linux/macOS/Windows)
+  - 目的: 简化开发环境搭建过程
+  - 状态: ✅ 已完成 - 全平台支持脚本
+
+- [x] 25. 编写环境配置文档
+  - File: ANDROID-SETUP.md
+  - 详细配置指南 (640行)
+  - 目的: 提供完整的配置说明
+  - 状态: ✅ 已完成 - 包含故障排除和优化建议
+
+- [x] 26. 更新项目进度文档
+  - File: PROGRESS.md
+  - 记录开发进度和待办事项
+  - 目的: 跟踪项目状态
+  - 状态: ✅ 已完成 - 详细的进度报告
 
 ## Implementation Notes
 
