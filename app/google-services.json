@@ -1,0 +1,58 @@
+{
+  "project_info": {
+    "project_number": "123456789",
+    "project_id": "rikkahub-placeholder",
+    "storage_bucket": "rikkahub-placeholder.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123456789:android:placeholder",
+        "android_client_info": {
+          "package_name": "me.rerere.rikkahub"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "placeholder-client-id",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "placeholder-api-key"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123456789:android:placeholder-debug",
+        "android_client_info": {
+          "package_name": "me.rerere.rikkahub.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "placeholder-client-id-debug",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "placeholder-api-key-debug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

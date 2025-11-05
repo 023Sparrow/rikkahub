@@ -1,4 +1,5 @@
 /build
 /release
-google-services.json
-app.key
+# 真实的Firebase配置文件不应该提交，这里是占位符文件用于构建
+# google-services.json (placeholder for build process)
+/app.key
