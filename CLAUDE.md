@@ -298,3 +298,4 @@ Clear Gradle cache if builds behave unexpectedly:
 rm -rf ~/.gradle/caches
 ./gradlew --refresh-dependencies
 ```
+- rikkahub这一项目开发环境为Windows

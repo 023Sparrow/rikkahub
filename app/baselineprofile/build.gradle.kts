@@ -13,8 +13,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
 
     defaultConfig {
@@ -41,12 +43,5 @@ dependencies {
     implementation(libs.androidx.benchmark.macro.junit4)
 }
 
-androidComponents {
-    onVariants { v ->
-        val artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
-        v.instrumentationRunnerArguments.put(
-            "targetAppId",
-            v.testedApks.map { artifactsLoader.load(it)?.applicationId }
-        )
-    }
-}
+// The baseline profile plugin automatically detects the target app.
+// No need to manually configure targetAppId for this use case.
