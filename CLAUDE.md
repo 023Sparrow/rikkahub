@@ -7,6 +7,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 RikkaHub is a native Android LLM chat client that supports switching between different AI providers for conversations.
 Built with Jetpack Compose, Kotlin, and follows Material Design 3 principles.
 
+## 📊 Project Structure
+
+```mermaid
+graph TD
+    A[app<br/>主应用模块] --> B[ai<br/>AI SDK层]
+    A --> C[common<br/>通用工具]
+    A --> D[highlight<br/>代码高亮]
+    A --> E[search<br/>搜索功能]
+    A --> F[tts<br/>文本转语音]
+    A --> G[document<br/>文档处理]
+    A --> H[i18n<br/>国际化]
+
+    B --> B1[Provider抽象层]
+    B --> B2[OpenAI Provider]
+    B --> B3[Google Provider]
+    B --> B4[Claude Provider]
+    B --> B5[MNN 本地推理]
+
+    C --> C1[缓存系统]
+    C --> C2[Android 工具]
+    C --> C3[日志系统]
+
+    E --> E1[Exa 搜索]
+    E --> E2[Brave 搜索]
+    E --> E3[Bing 搜索]
+    E --> E4[Firecrawl]
+    E --> E5[Perplexity]
+    E --> E6[Jina 搜索]
+
+    F --> F1[Gemini TTS]
+    F --> F2[MiniMax TTS]
+```
+
 ## Architecture Overview
 
 ### Module Structure

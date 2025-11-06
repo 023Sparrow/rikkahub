@@ -1,0 +1,17 @@
+# Spec Workflow MCP Server Configuration File
+# ============================================
+
+# Project directory path - 设置您的项目目录
+projectDir = "D:\\Code\\rikkahub"
+
+# Dashboard port - dashboard端口
+port = 3000
+
+# Auto-start dashboard - 自动启动dashboard
+autoStartDashboard = true
+
+# Dashboard-only mode - 仅运行dashboard模式
+dashboardOnly = true
+
+# Language - 界面语言
+lang = "zh"
