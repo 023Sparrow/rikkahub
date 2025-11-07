@@ -32,6 +32,7 @@ import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.replaceRegexes
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.service.ChatService
+import me.rerere.rikkahub.service.AutoSummaryService
 import me.rerere.rikkahub.ui.hooks.writeStringPreference
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
@@ -48,6 +49,8 @@ class ChatVM(
     private val settingsStore: SettingsStore,
     private val conversationRepo: ConversationRepository,
     private val chatService: ChatService,
+    // TODO: 暂时禁用自动总结服务，调试崩溃问题
+    // private val autoSummaryService: AutoSummaryService,
     val updateChecker: UpdateChecker,
     private val analytics: FirebaseAnalytics,
 ) : ViewModel() {
@@ -183,6 +186,10 @@ class ChatVM(
         }
 
         chatService.sendMessage(_conversationId, processedContent)
+
+        // TODO: 暂时禁用自动总结服务，调试崩溃问题
+        // val currentAssistantId = settings.value.assistantId.toString()
+        // autoSummaryService.processMessage(currentAssistantId, isUserMessage = true)
     }
 
     fun handleMessageEdit(parts: List<UIMessagePart>, messageId: Uuid) {

@@ -12,9 +12,13 @@ import me.rerere.rikkahub.data.ai.tools.LocalTools
 import me.rerere.rikkahub.service.ChatService
 import me.rerere.rikkahub.service.WorldBookMatcher
 import me.rerere.rikkahub.service.WorldBookInjector
-// Temporarily commented out for data layer testing
-// import me.rerere.rikkahub.ui.pages.worldbook.WorldBookViewModel
-// import me.rerere.rikkahub.ui.pages.memorytable.MemoryTableViewModel
+import me.rerere.rikkahub.service.MemoryTableInjector
+import me.rerere.rikkahub.service.AutoSummaryService
+import me.rerere.rikkahub.data.ai.memory.MemoryEnhancementService
+import me.rerere.rikkahub.data.ai.memory.MemoryInjector
+import me.rerere.rikkahub.ui.viewmodel.WorldBookViewModel
+import me.rerere.rikkahub.ui.viewmodel.MemoryTableViewModel
+import me.rerere.rikkahub.ui.pages.chat.ChatVM
 import me.rerere.rikkahub.utils.EmojiData
 import me.rerere.rikkahub.utils.EmojiUtils
 import me.rerere.rikkahub.utils.JsonInstant
@@ -74,6 +78,28 @@ val appModule = module {
     }
 
     single {
+        MemoryTableInjector()
+    }
+
+    // 临时禁用记忆增强服务以确保应用正常启动
+    // single {
+    //     MemoryEnhancementService(
+    //         memorySheetDao = get(),
+    //         memoryCellDao = get(),
+    //         memoryColumnDao = get()
+    //     )
+    // }
+
+    // // 使用lazy创建避免循环依赖
+    // single {
+    //     MemoryInjector(
+    //         memoryEnhancementService = lazy { get<MemoryEnhancementService>() },
+    //         memorySheetDao = get()
+    //         // TODO: promptManager = get() - PromptManager暂未实现
+    //     )
+    // }
+
+    single {
         ChatService(
             context = get(),
             appScope = get(),
@@ -88,19 +114,46 @@ val appModule = module {
             worldBookRepository = get(),
             worldBookMatcher = get(),
             worldBookInjector = get()
+            // 临时移除记忆增强功能
+            // memoryEnhancementService = get(),
+            // memoryInjector = get()
         )
     }
 
-    // Temporarily commented out for data layer testing
-    // factory {
-    //     WorldBookViewModel(
-    //         repository = get()
+    // TODO: 暂时禁用自动总结服务，调试崩溃问题
+    // single {
+    //     AutoSummaryService(
+    //         appScope = get(),
+    //         memoryTableRepository = get()
     //     )
     // }
 
-    // factory {
-    //     MemoryTableViewModel(
-    //         repository = get()
+    factory {
+        WorldBookViewModel(
+            repository = get(),
+            matcher = get(),
+            injector = get()
+        )
+    }
+
+    factory {
+        MemoryTableViewModel(
+            repository = get(),
+            injector = get()
+        )
+    }
+
+    // ChatVM moved to ViewModelModule
+    // factory { (id: String) ->
+    //     ChatVM(
+    //         id = id,
+    //         context = get(),
+    //         settingsStore = get(),
+    //         conversationRepo = get(),
+    //         chatService = get(),
+    //         // autoSummaryService = get(),
+    //         updateChecker = get(),
+    //         analytics = get()
     //     )
     // }
 }

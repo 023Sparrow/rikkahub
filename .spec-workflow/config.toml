@@ -5,13 +5,13 @@
 projectDir = "D:\\Code\\rikkahub"
 
 # Dashboard port - dashboard端口
-port = 3000
+port = 3001
 
 # Auto-start dashboard - 自动启动dashboard
 autoStartDashboard = true
 
 # Dashboard-only mode - 仅运行dashboard模式
-dashboardOnly = true
+dashboardOnly = false
 
 # Language - 界面语言
 lang = "zh"

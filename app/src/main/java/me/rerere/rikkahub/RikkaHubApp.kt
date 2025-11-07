@@ -46,13 +46,27 @@ class RikkaHubApp : Application() {
         // delete temp files
         deleteTempFiles()
 
-        // Init remote config
-        get<FirebaseRemoteConfig>().apply {
-            setConfigSettingsAsync(remoteConfigSettings {
-                minimumFetchIntervalInSeconds = 1800
-            })
-            setDefaultsAsync(R.xml.remote_config_defaults)
-            fetchAndActivate()
+        // Init remote config with error handling
+        try {
+            get<FirebaseRemoteConfig>().apply {
+                setConfigSettingsAsync(remoteConfigSettings {
+                    minimumFetchIntervalInSeconds = 1800
+                })
+                setDefaultsAsync(R.xml.remote_config_defaults)
+                fetchAndActivate()
+                    .addOnSuccessListener { activated ->
+                        Log.d(TAG, "Remote Config activated: $activated")
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.w(TAG, "Remote Config fetch failed, using defaults", exception)
+                    }
+                    .addOnCanceledListener {
+                        Log.w(TAG, "Remote Config fetch cancelled")
+                    }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Firebase Remote Config initialization failed", e)
+            // Continue app startup without remote config
         }
     }
 

@@ -1,0 +1,14 @@
+{
+  "filePath": ".spec-workflow/specs/world-book-memory-table/design.md",
+  "currentVersion": 1,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2025-11-07T02:42:25.822Z",
+      "trigger": "initial",
+      "approvalId": "approval_1762483345794_h6hpdu6ru",
+      "approvalTitle": "World Book和Memory Table技术设计文档"
+    }
+  ]
+}

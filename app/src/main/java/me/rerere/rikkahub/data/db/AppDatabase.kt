@@ -14,17 +14,26 @@ import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.data.db.converter.StringListConverter
 import me.rerere.rikkahub.data.db.converter.MemoryTableCellConverter
+import me.rerere.rikkahub.data.db.converter.MemoryTableConverter
 import me.rerere.rikkahub.data.db.dao.ConversationDAO
 import me.rerere.rikkahub.data.db.dao.GenMediaDAO
 import me.rerere.rikkahub.data.db.dao.MemoryDAO
 import me.rerere.rikkahub.data.db.dao.WorldBookDAO
 import me.rerere.rikkahub.data.db.dao.MemoryTableDAO
+import me.rerere.rikkahub.data.db.dao.TableTemplateDao
+import me.rerere.rikkahub.data.db.dao.MemorySheetDao
+import me.rerere.rikkahub.data.db.dao.MemoryCellDao
+import me.rerere.rikkahub.data.db.dao.MemoryColumnDao
 import me.rerere.rikkahub.data.db.entity.ConversationEntity
 import me.rerere.rikkahub.data.db.entity.GenMediaEntity
 import me.rerere.rikkahub.data.db.entity.MemoryEntity
 import me.rerere.rikkahub.data.db.entity.WorldBookEntry
 import me.rerere.rikkahub.data.db.entity.MemoryTable
 import me.rerere.rikkahub.data.db.entity.MemoryTableRow
+import me.rerere.rikkahub.data.db.entity.TableTemplate
+import me.rerere.rikkahub.data.db.entity.MemorySheet
+import me.rerere.rikkahub.data.db.entity.MemoryCell
+import me.rerere.rikkahub.data.db.entity.MemoryColumn
 import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.utils.JsonInstant
 
@@ -37,9 +46,14 @@ private const val TAG = "AppDatabase"
         GenMediaEntity::class,
         WorldBookEntry::class,
         MemoryTable::class,
-        MemoryTableRow::class
+        MemoryTableRow::class,
+        TableTemplate::class
+        // 临时移除记忆增强功能相关实体以确保应用能正常启动
+        // MemorySheet::class,
+        // MemoryCell::class,
+        // MemoryColumn::class
     ],
-    version = 12,
+    version = 15,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -50,13 +64,19 @@ private const val TAG = "AppDatabase"
         AutoMigration(from = 8, to = 9, spec = Migration_8_9::class),
         AutoMigration(from = 9, to = 10),
         AutoMigration(from = 10, to = 11),
-        AutoMigration(from = 11, to = 12)
+        AutoMigration(from = 11, to = 12),
+        AutoMigration(from = 12, to = 13, spec = Migration_12_13::class),
+        AutoMigration(from = 13, to = 14, spec = Migration_13_14::class),
+        AutoMigration(from = 14, to = 15)
+        // 临时移除版本16迁移 - 记忆增强功能暂时禁用
+        // AutoMigration(from = 15, to = 16, spec = Migration_15_16::class)
     ]
 )
 @TypeConverters(
     TokenUsageConverter::class,
     StringListConverter::class,
-    MemoryTableCellConverter::class
+    MemoryTableCellConverter::class,
+    MemoryTableConverter::class
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun conversationDao(): ConversationDAO
@@ -64,10 +84,17 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun memoryDao(): MemoryDAO
 
     abstract fun genMediaDao(): GenMediaDAO
-    
+
     abstract fun worldBookDao(): WorldBookDAO
-    
+
     abstract fun memoryTableDao(): MemoryTableDAO
+
+    abstract fun tableTemplateDao(): TableTemplateDao
+
+    // 临时移除记忆增强功能相关DAO
+    // abstract fun memorySheetDao(): MemorySheetDao
+    // abstract fun memoryCellDao(): MemoryCellDao
+    // abstract fun memoryColumnDao(): MemoryColumnDao
 }
 
 object TokenUsageConverter {
@@ -173,3 +200,12 @@ val Migration_6_7 = object : Migration(6, 7) {
 
 @DeleteColumn(tableName = "ConversationEntity", columnName = "usage")
 class Migration_8_9 : AutoMigrationSpec
+
+class Migration_12_13 : AutoMigrationSpec
+
+@DeleteColumn(tableName = "memory_table", columnName = "column_headers")
+class Migration_13_14 : AutoMigrationSpec
+
+// 版本15到16的迁移 - 添加记忆增强相关表格 (临时禁用)
+// 这些表格是全新添加的，不需要删除列
+// class Migration_15_16 : AutoMigrationSpec

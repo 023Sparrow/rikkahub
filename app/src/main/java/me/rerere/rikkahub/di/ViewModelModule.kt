@@ -23,6 +23,7 @@ val viewModelModule = module {
             settingsStore = get(),
             conversationRepo = get(),
             chatService = get(),
+            // autoSummaryService = get(), // TODO: 暂时禁用
             updateChecker = get(),
             analytics = get()
         )

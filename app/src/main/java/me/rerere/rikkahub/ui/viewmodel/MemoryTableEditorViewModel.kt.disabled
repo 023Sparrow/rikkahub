@@ -1,9 +1,7 @@
-/*
 package me.rerere.rikkahub.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,10 +12,8 @@ import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.model.MemoryTableItem
 import me.rerere.rikkahub.data.model.MemoryTableRowItem
 import me.rerere.rikkahub.data.repository.MemoryTableRepository
-import javax.inject.Inject
 
-@HiltViewModel
-class MemoryTableEditorViewModel @Inject constructor(
+class MemoryTableEditorViewModel(
     private val memoryTableRepository: MemoryTableRepository
 ) : ViewModel() {
 

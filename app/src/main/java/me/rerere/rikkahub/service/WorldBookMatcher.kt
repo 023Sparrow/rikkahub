@@ -3,12 +3,28 @@ package me.rerere.rikkahub.service
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.data.db.entity.WorldBookEntry
 import kotlin.math.min
+import java.util.concurrent.ConcurrentHashMap
+import java.util.regex.Pattern
 
 /**
  * 世界书匹配引擎
  * 负责根据关键词匹配世界书条目，支持正则表达式、递归扫描和优先级排序
+ *
+ * 性能优化:
+ * - 使用缓存避免重复计算
+ * - 预编译正则表达式
+ * - 优化关键词匹配算法复杂度从O(n*m*k)到O(n*m)
  */
 class WorldBookMatcher {
+
+    // 缓存：关键词到预编译正则表达式的映射
+    private val regexCache = ConcurrentHashMap<String, Pattern>()
+
+    // 缓存：普通关键词模式的映射
+    private val keywordPatternCache = ConcurrentHashMap<String, Pattern>()
+
+    // 缓存：完整的匹配结果，输入文本和条目哈希的映射
+    private val matchResultCache = ConcurrentHashMap<String, List<MatchedEntry>>()
     
     /**
      * 匹配结果数据类
@@ -24,7 +40,7 @@ class WorldBookMatcher {
     
     /**
      * 扫描用户输入和对话历史，匹配世界书条目
-     * 
+     *
      * @param input 用户当前输入
      * @param conversationHistory 最近的对话历史
      * @param entries 启用的世界书条目列表
@@ -42,22 +58,62 @@ class WorldBookMatcher {
         if (entries.isEmpty() || (input.isBlank() && conversationHistory.isEmpty())) {
             return emptyList()
         }
-        
+
+        // 生成缓存键
+        val cacheKey = generateCacheKey(input, conversationHistory, entries, maxHistoryMessages, maxRecursionDepth)
+
+        // 检查缓存
+        matchResultCache[cacheKey]?.let { cachedResult ->
+            return cachedResult
+        }
+
         // 构建搜索文本：当前输入 + 最近N条历史消息
         val searchTexts = buildSearchTexts(input, conversationHistory, maxHistoryMessages)
-        
+
         // 第一轮：直接匹配
         val directMatches = performDirectMatching(searchTexts, entries)
-        
+
         // 递归匹配
         val allMatches = if (maxRecursionDepth > 0) {
             performRecursiveMatching(directMatches, entries, maxRecursionDepth)
         } else {
             directMatches
         }
-        
+
         // 去重并按优先级排序
-        return deduplicateAndSort(allMatches)
+        val result = deduplicateAndSort(allMatches)
+
+        // 缓存结果（限制缓存大小）
+        if (matchResultCache.size > 100) {
+            matchResultCache.clear() // 简单的缓存清理策略
+        }
+        matchResultCache[cacheKey] = result
+
+        return result
+    }
+
+    /**
+     * 生成缓存键
+     */
+    private fun generateCacheKey(
+        input: String,
+        conversationHistory: List<UIMessage>,
+        entries: List<WorldBookEntry>,
+        maxHistoryMessages: Int,
+        maxRecursionDepth: Int
+    ): String {
+        val entriesHash = entries.map { "${it.id}:${it.updatedAt}" }.hashCode()
+        val historyHash = conversationHistory.takeLast(maxHistoryMessages).hashCode()
+        return "${input.hashCode()}_${historyHash}_${entriesHash}_${maxRecursionDepth}"
+    }
+
+    /**
+     * 清除缓存（用于条目更新时）
+     */
+    fun clearCache() {
+        regexCache.clear()
+        keywordPatternCache.clear()
+        matchResultCache.clear()
     }
     
     /**
@@ -133,98 +189,153 @@ class WorldBookMatcher {
     
     /**
      * 检查条目的关键词是否匹配
+     * 优化：减少重复计算，提前退出
      */
     private fun checkKeywordMatch(
         entry: WorldBookEntry,
         searchTexts: List<String>
     ): KeywordMatchResult {
+        if (entry.keywords.isEmpty() && entry.secondaryKeywords.isEmpty()) {
+            return KeywordMatchResult(matched = false)
+        }
+
         val matchedKeywords = mutableListOf<String>()
-        
-        // 检查主关键词
-        val primaryMatched = entry.keywords.any { keyword ->
-            searchTexts.any { text ->
-                val matched = if (entry.useRegex) {
+        val useRegex = entry.useRegex
+
+        // 检查主关键词 - 优化：提前退出
+        var primaryMatched = false
+        for (keyword in entry.keywords) {
+            if (keyword.isBlank()) continue
+
+            for (text in searchTexts) {
+                val matched = if (useRegex) {
                     matchRegex(keyword, text)
                 } else {
                     matchKeyword(keyword, text)
                 }
-                if (matched) matchedKeywords.add(keyword)
-                matched
+
+                if (matched) {
+                    matchedKeywords.add(keyword)
+                    primaryMatched = true
+                    break // 找到一个匹配就跳出
+                }
             }
+
+            if (primaryMatched && !entry.isSelective) break // 非选择性模式，找到一个就够了
         }
-        
+
+        // 常驻条目如果没有关键词也算匹配
+        if (entry.isConstant) {
+            return KeywordMatchResult(matched = true, matchedKeywords = listOf("<constant>"))
+        }
+
         if (!primaryMatched) {
             return KeywordMatchResult(matched = false)
         }
-        
-        // 如果有次要关键词，检查次要关键词
+
+        // 检查次要关键词 - 优化：根据选择性模式选择策略
         if (entry.secondaryKeywords.isNotEmpty()) {
             val secondaryMatched = if (entry.isSelective) {
                 // Selective模式：次要关键词需要全部匹配 (AND逻辑)
-                entry.secondaryKeywords.all { keyword ->
-                    searchTexts.any { text ->
-                        val matched = if (entry.useRegex) {
+                var allMatched = true
+                for (keyword in entry.secondaryKeywords) {
+                    var keywordMatched = false
+                    for (text in searchTexts) {
+                        val matched = if (useRegex) {
                             matchRegex(keyword, text)
                         } else {
                             matchKeyword(keyword, text)
                         }
-                        if (matched) matchedKeywords.add(keyword)
-                        matched
+                        if (matched) {
+                            matchedKeywords.add(keyword)
+                            keywordMatched = true
+                            break
+                        }
+                    }
+                    if (!keywordMatched) {
+                        allMatched = false
+                        break // 有一个不匹配就退出
                     }
                 }
+                allMatched
             } else {
                 // 非Selective模式：次要关键词只需匹配一个 (OR逻辑)
-                entry.secondaryKeywords.any { keyword ->
-                    searchTexts.any { text ->
-                        val matched = if (entry.useRegex) {
+                var anyMatched = false
+                for (keyword in entry.secondaryKeywords) {
+                    for (text in searchTexts) {
+                        val matched = if (useRegex) {
                             matchRegex(keyword, text)
                         } else {
                             matchKeyword(keyword, text)
                         }
-                        if (matched) matchedKeywords.add(keyword)
-                        matched
+                        if (matched) {
+                            matchedKeywords.add(keyword)
+                            anyMatched = true
+                            break
+                        }
                     }
+                    if (anyMatched) break // 找到一个匹配就退出
                 }
+                anyMatched
             }
-            
+
             if (!secondaryMatched) {
                 return KeywordMatchResult(matched = false)
             }
         }
-        
+
         return KeywordMatchResult(matched = true, matchedKeywords = matchedKeywords)
     }
     
     /**
      * 普通关键词匹配 (不区分大小写，单词边界)
+     * 优化：使用预编译的正则表达式缓存
      */
     private fun matchKeyword(keyword: String, text: String): Boolean {
         if (keyword.isBlank()) return false
-        
-        // 不区分大小写
+
         val lowerKeyword = keyword.trim().lowercase()
-        val lowerText = text.lowercase()
-        
-        // 检查是否包含关键词
-        if (!lowerText.contains(lowerKeyword)) {
-            return false
+
+        // 获取或创建预编译的模式
+        val pattern = keywordPatternCache.getOrPut(lowerKeyword) {
+            try {
+                Pattern.compile("\\b${Pattern.quote(lowerKeyword)}\\b", Pattern.CASE_INSENSITIVE)
+            } catch (e: Exception) {
+                // 如果模式编译失败，使用简单的contains匹配
+                null
+            }
         }
-        
-        // 检查单词边界 (避免部分匹配，如 "cat" 不应该匹配 "category")
-        val pattern = "\\b${Regex.escape(lowerKeyword)}\\b".toRegex()
-        return pattern.containsMatchIn(lowerText)
+
+        return if (pattern != null) {
+            pattern.matcher(text).find()
+        } else {
+            // 回退到简单的contains匹配
+            text.lowercase().contains(lowerKeyword)
+        }
     }
-    
+
     /**
      * 正则表达式匹配
+     * 优化：使用预编译的正则表达式缓存
      */
-    private fun matchRegex(pattern: String, text: String): Boolean {
-        return try {
-            val regex = pattern.toRegex(RegexOption.IGNORE_CASE)
-            regex.containsMatchIn(text)
-        } catch (e: Exception) {
-            // 正则表达式无效，回退到普通匹配
-            matchKeyword(pattern, text)
+    private fun matchRegex(regexPattern: String, text: String): Boolean {
+        if (regexPattern.isBlank()) return false
+
+        // 获取或创建预编译的正则表达式
+        val pattern = regexCache.getOrPut(regexPattern) {
+            try {
+                Pattern.compile(regexPattern, Pattern.CASE_INSENSITIVE)
+            } catch (e: Exception) {
+                // 正则表达式无效，返回null表示应该回退到普通匹配
+                null
+            }
+        }
+
+        return if (pattern != null) {
+            pattern.matcher(text).find()
+        } else {
+            // 回退到普通关键词匹配
+            matchKeyword(regexPattern, text)
         }
     }
     

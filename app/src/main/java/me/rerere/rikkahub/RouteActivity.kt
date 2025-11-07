@@ -74,11 +74,8 @@ import me.rerere.rikkahub.ui.pages.setting.SettingTTSPage
 import me.rerere.rikkahub.ui.pages.share.handler.ShareHandlerPage
 import me.rerere.rikkahub.ui.pages.translator.TranslatorPage
 import me.rerere.rikkahub.ui.pages.webview.WebViewPage
-// Temporarily commented out for data layer testing
-// import me.rerere.rikkahub.ui.pages.worldbook.WorldBookPage
-// import me.rerere.rikkahub.ui.pages.worldbook.WorldBookEditorPage
-// import me.rerere.rikkahub.ui.pages.memorytable.MemoryTablePage
-// import me.rerere.rikkahub.ui.pages.memorytable.MemoryTableEditorPage
+import me.rerere.rikkahub.ui.pages.worldbook.WorldBookPage
+import me.rerere.rikkahub.ui.pages.memorytable.MemoryTablePage
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import okhttp3.OkHttpClient
@@ -299,24 +296,15 @@ class RouteActivity : ComponentActivity() {
                         DebugPage()
                     }
 
-                    // Temporarily commented out for data layer testing
-                    // composable<Screen.WorldBook> {
-                    //     WorldBookPage()
-                    // }
+                    composable<Screen.WorldBook> { backStackEntry ->
+                        val screen: Screen.WorldBook = backStackEntry.toRoute()
+                        WorldBookPage(assistantId = screen.assistantId)
+                    }
 
-                    // composable<Screen.WorldBookEditor> { backStackEntry ->
-                    //     val route = backStackEntry.toRoute<Screen.WorldBookEditor>()
-                    //     WorldBookEditorPage(entryId = route.entryId)
-                    // }
-
-                    // composable<Screen.MemoryTable> {
-                    //     MemoryTablePage()
-                    // }
-
-                    // composable<Screen.MemoryTableEditor> { backStackEntry ->
-                    //     val route = backStackEntry.toRoute<Screen.MemoryTableEditor>()
-                    //     MemoryTableEditorPage(entryId = route.entryId)
-                    // }
+                    composable<Screen.MemoryTable> { backStackEntry ->
+                        val screen: Screen.MemoryTable = backStackEntry.toRoute()
+                        MemoryTablePage(assistantId = screen.assistantId)
+                    }
                 }
             }
         }
@@ -391,14 +379,14 @@ sealed interface Screen {
     data object Debug : Screen
 
     @Serializable
-    data object WorldBook : Screen
+    data class WorldBook(val assistantId: String) : Screen
 
     @Serializable
-    data class WorldBookEditor(val entryId: String? = null) : Screen
+    data class WorldBookEditor(val assistantId: String, val entryId: String? = null) : Screen
 
     @Serializable
-    data object MemoryTable : Screen
+    data class MemoryTable(val assistantId: String) : Screen
 
     @Serializable
-    data class MemoryTableEditor(val entryId: String? = null) : Screen
+    data class MemoryTableEditor(val assistantId: String, val entryId: String? = null) : Screen
 }

@@ -77,6 +77,7 @@ fun AssistantDetailPage(id: String) {
         stringResource(R.string.assistant_page_tab_basic),
         stringResource(R.string.assistant_page_tab_prompt),
         stringResource(R.string.assistant_page_tab_memory),
+        stringResource(R.string.assistant_page_tab_world_book),
         stringResource(R.string.assistant_page_tab_request),
         stringResource(R.string.assistant_page_tab_mcp),
         stringResource(R.string.assistant_page_tab_local_tools)
@@ -158,12 +159,19 @@ fun AssistantDetailPage(id: String) {
                     }
 
                     3 -> {
+                        // World Book 标签页
+                        AssistantWorldBookSettings(
+                            assistantId = assistant.id.toString()
+                        )
+                    }
+
+                    4 -> {
                         AssistantCustomRequestSettings(assistant = assistant) {
                             onUpdate(it)
                         }
                     }
 
-                    4 -> {
+                    5 -> {
                         AssistantMcpSettings(
                             assistant = assistant,
                             onUpdate = {
@@ -173,7 +181,7 @@ fun AssistantDetailPage(id: String) {
                         )
                     }
 
-                    5 -> {
+                    6 -> {
                         AssistantLocalToolSubPage(
                             assistant = assistant,
                             onUpdate = { onUpdate(it) }

@@ -2,10 +2,23 @@ package me.rerere.rikkahub.data.db.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(tableName = "world_book_entry")
+@Entity(
+    tableName = "world_book_entry",
+    indices = [
+        Index(value = ["assistant_id"]),
+        Index(value = ["is_enabled"]),
+        Index(value = ["assistant_id", "is_enabled"]),
+        Index(value = ["priority"]),
+        Index(value = ["created_at"]),
+        Index(value = ["assistant_id", "priority"]),
+        Index(value = ["title"]),
+        Index(value = ["keywords"])
+    ]
+)
 data class WorldBookEntry(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),

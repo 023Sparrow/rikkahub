@@ -1,0 +1,21 @@
+{
+  "id": "approval_1762483470776_ouwigi6dd",
+  "title": "World Book和Memory Table功能实施任务分解",
+  "filePath": ".spec-workflow/specs/world-book-memory-table/tasks.md",
+  "type": "document",
+  "status": "needs-revision",
+  "createdAt": "2025-11-07T02:44:30.776Z",
+  "category": "spec",
+  "categoryName": "world-book-memory-table",
+  "response": "Feedback Summary (1 comments):\n\nGeneral Comments:\n1. 执行任务之前先检查已完成部分代码使用的jdk和java等版本及路径，避免版本错误或不匹配\n\n",
+  "annotations": "{\n  \"decision\": \"needs-revision\",\n  \"comments\": [\n    {\n      \"type\": \"general\",\n      \"comment\": \"执行任务之前先检查已完成部分代码使用的jdk和java等版本及路径，避免版本错误或不匹配\",\n      \"timestamp\": \"2025-11-07T02:46:23.998Z\",\n      \"id\": \"comment_1762483583998_3jxxxkon9\"\n    }\n  ],\n  \"summary\": \"Feedback Summary (1 comments):\\n\\nGeneral Comments:\\n1. 执行任务之前先检查已完成部分代码使用的jdk和java等版本及路径，避免版本错误或不匹配\\n\\n\",\n  \"timestamp\": \"2025-11-07T02:46:27.469Z\"\n}",
+  "respondedAt": "2025-11-07T02:46:27.493Z",
+  "comments": [
+    {
+      "type": "general",
+      "comment": "执行任务之前先检查已完成部分代码使用的jdk和java等版本及路径，避免版本错误或不匹配",
+      "timestamp": "2025-11-07T02:46:23.998Z",
+      "id": "comment_1762483583998_3jxxxkon9"
+    }
+  ]
+}

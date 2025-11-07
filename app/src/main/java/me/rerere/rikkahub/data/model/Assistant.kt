@@ -44,6 +44,15 @@ data class Assistant(
     
     // 记忆表格配置
     val enableMemoryTable: Boolean = false,                    // 是否启用记忆表格作为Tool
+
+    // 记忆增强配置
+    val enableMemoryEnhancement: Boolean = false,               // 是否启用记忆增强系统
+    val memoryEnhancementMaxTokens: Int = 1500,                 // 记忆增强token限制
+    val memoryEnhancementFormatStyle: MemoryEnhancementFormatStyle = MemoryEnhancementFormatStyle.STRUCTURED, // 格式化风格
+    val memoryEnhancementInjectPosition: Int = 0,               // 注入位置: 0=开头, 1=结尾
+    val memoryEnhancementEnableDeduplication: Boolean = true,   // 启用去重
+    val memoryEnhancementMaxRows: Int = 50,                     // 最大显示行数
+    val memoryEnhancementTruncateContent: Boolean = true,       // 截断长内容
 )
 
 /**
@@ -54,6 +63,17 @@ enum class WorldBookFormatStyle {
     STRUCTURED,  // 结构化格式
     MINIMAL,     // 简洁格式
     MARKDOWN     // Markdown格式
+}
+
+/**
+ * 记忆增强格式化风格
+ */
+@Serializable
+enum class MemoryEnhancementFormatStyle {
+    STRUCTURED,      // 结构化格式
+    MINIMAL,         // 简洁格式
+    MARKDOWN,        // Markdown格式
+    CONVERSATIONAL   // 对话格式
 }
 
 @Serializable

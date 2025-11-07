@@ -59,6 +59,9 @@ import me.rerere.rikkahub.data.ai.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.data.ai.transformers.RegexOutputTransformer
 import me.rerere.rikkahub.data.ai.transformers.TemplateTransformer
 import me.rerere.rikkahub.data.ai.transformers.ThinkTagTransformer
+import me.rerere.rikkahub.data.ai.memory.MemoryEnhancementService
+import me.rerere.rikkahub.data.ai.memory.MemoryInjector
+import me.rerere.rikkahub.data.ai.memory.InjectionStatus
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
@@ -110,7 +113,10 @@ class ChatService(
     val mcpManager: McpManager,
     private val worldBookRepository: me.rerere.rikkahub.data.repository.WorldBookRepository,
     private val worldBookMatcher: WorldBookMatcher,
-    private val worldBookInjector: WorldBookInjector,
+    private val worldBookInjector: WorldBookInjector
+    // 临时移除记忆增强功能参数
+    // private val memoryEnhancementService: me.rerere.rikkahub.data.ai.memory.MemoryEnhancementService,
+    // private val memoryInjector: me.rerere.rikkahub.data.ai.memory.MemoryInjector,
 ) {
     // 存储每个对话的状态
     private val conversations = ConcurrentHashMap<Uuid, MutableStateFlow<Conversation>>()
@@ -427,6 +433,36 @@ class ChatService(
                 }
             }
             // ============ 世界书集成结束 ============
+
+            // ============ 记忆增强系统集成 (临时禁用) ============
+            // 临时禁用记忆增强功能以确保应用正常启动
+            // if (assistant.enableMemoryEnhancement) {
+            //     try {
+            //         // 获取对话历史文本
+            //         val conversationHistory = messagesToGenerate.map { it.toText() }
+
+            //         // 注入记忆内容
+            //         val memoryInjectionResult = memoryInjector.injectMemoryForChat(
+            //             assistantId = assistant.id.toString(),
+            //             conversationHistory = conversationHistory,
+            //             maxMemoryTokens = assistant.memoryEnhancementMaxTokens
+            //         )
+
+            //         if (memoryInjectionResult.status == InjectionStatus.SUCCESS) {
+            //             // 将记忆内容转换为UIMessage并插入到消息列表开头
+            //             val memoryMessage = UIMessage.system(memoryInjectionResult.enhancedHistory.first())
+            //             messagesToGenerate = listOf(memoryMessage) + messagesToGenerate
+
+            //             // 日志输出注入结果（用于调试）
+            //             Log.d(TAG, "Memory Enhancement injected ${memoryInjectionResult.injectedSheets.size} sheets")
+            //             Log.d(TAG, "Memory Enhancement used ${memoryInjectionResult.usedTokens} tokens")
+            //         }
+            //     } catch (e: Exception) {
+            //         Log.e(TAG, "Memory Enhancement integration error", e)
+            //         // 记忆增强错误不应阻止对话继续，只记录错误
+            //     }
+            // }
+            // ============ 记忆增强系统集成结束 ============
 
             // start generating
             generationHandler.generateText(

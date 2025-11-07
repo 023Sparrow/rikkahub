@@ -348,6 +348,7 @@
   <string name="assistant_page_tab_basic">Basic Settings</string>
   <string name="assistant_page_tab_prompt">Prompts</string>
   <string name="assistant_page_tab_memory">Memory</string>
+  <string name="assistant_page_tab_world_book">World Book</string>
   <string name="assistant_page_tab_request">Custom Request</string>
   <string name="assistant_page_tab_mcp">MCP</string>
   <string name="assistant_page_tab_local_tools">Local Tools</string>

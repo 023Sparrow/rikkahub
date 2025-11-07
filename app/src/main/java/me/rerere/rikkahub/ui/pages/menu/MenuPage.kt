@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +30,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import me.rerere.rikkahub.ui.hooks.rememberAssistantState
 import coil3.compose.AsyncImage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.Screen
@@ -42,6 +45,9 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 
 @Composable
 fun MenuPage() {
+    // 简化版本，暂时移除LocalSettings依赖
+    val currentAssistantId = "default-assistant-id"
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -139,6 +145,39 @@ private fun FeaturesSection() {
             },
         ) {
             navController.navigate(Screen.ImageGen)
+        }
+
+        // 世界书功能卡片 - 已删除，移至助手详情页面
+        // FeatureCard(
+        //     title = {
+        //         Text("世界书")
+        //     },
+        //     image = {
+        //         AsyncImage(
+        //             model = "file:///android_asset/banner/banner-2.png",
+        //             contentDescription = null,
+        //             modifier = Modifier.fillMaxSize(),
+        //             contentScale = ContentScale.Crop
+        //         )
+        //     },
+        // ) {
+        //     navController.navigate(Screen.WorldBook("default-assistant-id"))
+        // }
+
+        FeatureCard(
+            title = {
+                Text("记忆表格")
+            },
+            image = {
+                AsyncImage(
+                    model = "file:///android_asset/banner/banner-1.png",
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            },
+        ) {
+            navController.navigate(Screen.MemoryTable("default-assistant-id"))
         }
 //        FeatureCard(
 //            title = {
